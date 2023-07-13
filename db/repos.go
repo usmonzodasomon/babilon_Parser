@@ -3,9 +3,11 @@ package db
 import (
 	"database/sql"
 	"fmt"
+	"os"
 	"strings"
 
 	"github.com/usmonzodasomon/babilon_parser/models"
+	"github.com/usmonzodasomon/babilon_parser/utils"
 )
 
 func SaveData(db *sql.DB, data []models.DBData) error {
@@ -22,5 +24,56 @@ func SaveData(db *sql.DB, data []models.DBData) error {
 		return err
 	}
 
+	return nil
+}
+
+func GetDate(file *os.File) error {
+	sqlQuery := "SELECT * FROM netflow WHERE 1=1"
+	flags := utils.AppSettings.Flags
+	if flags.AccountID != -1 {
+		sqlQuery += fmt.Sprintf(" AND account_id = %d", flags.AccountID)
+	}
+	if flags.Tclass != -1 {
+		sqlQuery += fmt.Sprintf(" AND tclass = %d", flags.Tclass)
+	}
+	if flags.SourceIP != "" {
+		sqlQuery += fmt.Sprintf(" AND source_ip = '%s'", flags.SourceIP)
+	}
+	if flags.DestinationIP != "" {
+		sqlQuery += fmt.Sprintf(" AND destination_ip = '%s'", flags.DestinationIP)
+	}
+
+	rows, err := DB.Query(sqlQuery)
+	if err != nil {
+		panic(err)
+	}
+	defer rows.Close()
+	var (
+		sourceIP      string
+		destinationIP string
+		packets       int
+		bytes         int
+		sport         int
+		dport         int
+		proto         string
+		accountID     int
+		tclass        int
+		dateTime      string
+		nfSourceIP    string
+	)
+	for rows.Next() {
+		// Чтение данных из результата запроса
+		err = rows.Scan(&sourceIP, &destinationIP, &packets, &bytes, &sport, &dport, &proto, &accountID, &tclass, &dateTime, &nfSourceIP)
+		if err != nil {
+			panic(err)
+		}
+
+		// Вывод данных
+		data := fmt.Sprintf("Source IP: %s, Destination IP: %s, Packets: %d, Bytes: %d, Sport: %d, Dport: %d, Proto: %s, Account ID: %d, TClass: %d, DateTime: %s, NF Source IP: %s\n",
+			sourceIP, destinationIP, packets, bytes, sport, dport, proto, accountID, tclass, dateTime, nfSourceIP)
+		if err := utils.SaveToFile(file, data); err != nil {
+			return err
+		}
+	}
 	return nil
 }

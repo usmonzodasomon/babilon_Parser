@@ -15,9 +15,8 @@ type PostgresSettings struct {
 }
 
 type Flags struct {
-	Parsing       string
-	AccountID     uint32
-	Tclass        uint32
+	AccountID     int64
+	Tclass        int64
 	SourceIP      string
 	DestinationIP string
 }

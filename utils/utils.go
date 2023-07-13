@@ -1,6 +1,7 @@
 package utils
 
 import (
+	"flag"
 	"log"
 	"os"
 
@@ -23,7 +24,7 @@ func ReadSettings() {
 		log.Fatal("Failed to read `config.yaml` file. Error is: ", err.Error())
 	}
 
-	// getFlags()
+	getFlags()
 	setupPostgres()
 }
 
@@ -37,5 +38,21 @@ func setupPostgres() {
 }
 
 func getFlags() {
+	accountID := flag.Int("account_id", -1, "Account ID")
+	tclass := flag.Int("tclass", -1, "TClass")
+	sourceIP := flag.String("source_ip", "", "Source IP")
+	destinationIP := flag.String("destination_ip", "", "Destination IP")
+	flag.Parse()
+	AppSettings.Flags.AccountID = int64(*accountID)
+	AppSettings.Flags.Tclass = int64(*tclass)
+	AppSettings.Flags.SourceIP = *sourceIP
+	AppSettings.Flags.DestinationIP = *destinationIP
+}
 
+func SaveToFile(file *os.File, data string) error {
+	_, err := file.WriteString(data)
+	if err != nil {
+		return err
+	}
+	return nil
 }

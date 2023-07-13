@@ -1,8 +1,10 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
+	"os"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -19,9 +21,20 @@ func main() {
 	db.StartDBConnection()
 	defer db.CloseDBConnection(db.DB)
 
-	filename := "ip60.utm"
-	if err := parser.ParseBinaryData(filename); err != nil {
-		log.Fatal(err.Error())
+	if flag.NFlag() == 0 {
+		filename := "ipbig.utm"
+		if err := parser.ParseBinaryData(filename); err != nil {
+			log.Fatal(err.Error())
+		}
+	} else {
+		file, err := os.OpenFile("data.txt", os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0644)
+		if err != nil {
+			log.Fatal(err)
+		}
+		defer file.Close()
+		if err := db.GetDate(file); err != nil {
+			log.Fatal(err.Error())
+		}
 	}
 
 	fmt.Println(time.Since(start))
