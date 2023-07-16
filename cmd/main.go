@@ -23,7 +23,12 @@ func main() {
 
 	if flag.NFlag() == 0 {
 		filename := "ipbig.utm"
-		if err := parser.ParseBinaryData(filename); err != nil {
+		file, err := os.Open(filename)
+		if err != nil {
+			panic(err)
+		}
+		defer file.Close()
+		if err := parser.ParseBinaryData(file); err != nil {
 			log.Fatal(err.Error())
 		}
 	} else {

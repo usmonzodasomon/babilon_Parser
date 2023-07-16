@@ -6,7 +6,6 @@ import (
 	"io"
 	"net"
 	"os"
-	"runtime"
 	"sync"
 
 	"github.com/usmonzodasomon/babilon_parser/db"
@@ -15,14 +14,8 @@ import (
 
 var batchSize = 120 // Размер пакета для пакетной вставки
 
-func ParseBinaryData(filename string) error {
-	file, err := os.Open(filename)
-	if err != nil {
-		return err
-	}
-	defer file.Close()
-
-	_, err = file.Seek(175, 0)
+func ParseBinaryData(file *os.File) error {
+	_, err := file.Seek(175, 0)
 	if err != nil {
 		return err
 	}
@@ -60,7 +53,7 @@ func ParseBinaryData(filename string) error {
 		}
 	}()
 
-	var NumGor = runtime.NumCPU()
+	var NumGor = 8
 	var wg sync.WaitGroup
 	wg.Add(NumGor)
 	for i := 0; i < NumGor; i++ {
